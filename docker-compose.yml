@@ -1,0 +1,41 @@
+version: "2"
+services:
+  #Nginx Service
+  nginx:
+    image: nginx:1.19.10-alpine
+    container_name: nginx
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d/:/etc/nginx/conf.d/
+      - ./nginx/ssl/:/etc/nginx/ssl/
+    networks:
+      - english_studies
+  
+  #React service
+  react:
+    build:
+      context: .
+      dockerfile: ./Dockerfile-react
+    user: "node"
+    working_dir: /home/node/app
+    container_name: react
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=dev
+      - CHOKIDAR_USEPOLLING=true
+    volumes:
+      - ../repos/english_studies:/home/node/app
+    ports:
+      - "3000:3000"
+    command: "yarn start"
+    networks:
+      english_studies:
+        aliases: [app.local.english-studies.com]
+
+networks:
+  english_studies:
+    driver: bridge
